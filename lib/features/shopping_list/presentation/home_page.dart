@@ -184,14 +184,22 @@ class HomePage extends ConsumerWidget {
           ),
         ],
       ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => _showAddListDialog(context, ref),
-        elevation: 6,
-        label: const Text(
-          'Daftar Baru',
-          style: TextStyle(fontWeight: FontWeight.w900, letterSpacing: 0.5),
+      floatingActionButton: SizedBox(
+        height: 40, // Reduced height
+        child: FloatingActionButton.extended(
+          onPressed: () => _showAddListDialog(context, ref),
+          elevation: 4,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          label: const Text(
+            'Buat List',
+            style: TextStyle(
+              fontWeight: FontWeight.w900, 
+              letterSpacing: 0.5,
+              fontSize: 12, // Smaller font
+            ),
+          ),
+          icon: const Icon(Icons.add_shopping_cart_rounded, size: 18), // Smaller icon
         ),
-        icon: const Icon(Icons.add_rounded, size: 24),
       ),
     );
   }
@@ -481,130 +489,178 @@ class HomePage extends ConsumerWidget {
       'Lainnya',
     ];
 
-    showDialog(
+    showModalBottomSheet(
       context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
       builder: (context) => StatefulBuilder(
-        builder: (context, setState) => AlertDialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
-          title: Row(
-            children: [
-              Icon(Icons.playlist_add_rounded, color: theme.colorScheme.primary),
-              const SizedBox(width: 12),
-              const Text(
-                'Buat Daftar Baru',
-                style: TextStyle(fontWeight: FontWeight.w900, letterSpacing: -0.5),
-              ),
-            ],
+        builder: (context, setState) => Container(
+          padding: EdgeInsets.only(
+            bottom: MediaQuery.of(context).viewInsets.bottom + 24,
+            top: 12,
+            left: 20,
+            right: 20,
           ),
-          content: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _buildFieldLabel(context, 'NAMA DAFTAR'),
-                TextField(
-                  controller: nameController,
-                  autofocus: true,
-                  style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold),
-                  decoration: _buildInputDecoration(
-                    theme,
-                    'Nama daftar',
-                    Icons.edit_rounded,
-                  ),
-                ),
-                const SizedBox(height: 16),
-                _buildFieldLabel(context, 'KATEGORI'),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 2),
+          decoration: BoxDecoration(
+            color: theme.scaffoldBackgroundColor,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Center(
+                child: Container(
+                  width: 36,
+                  height: 4,
                   decoration: BoxDecoration(
-                    color: theme.colorScheme.surfaceVariant.withOpacity(0.3),
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  child: DropdownButtonHideUnderline(
-                    child: DropdownButton<String>(
-                      value: selectedCategory,
-                      isExpanded: true,
-                      icon: Icon(Icons.keyboard_arrow_down_rounded, color: theme.colorScheme.primary),
-                      dropdownColor: theme.colorScheme.surface,
-                      borderRadius: BorderRadius.circular(16),
-                      style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold),
-                      items: categories.map((String cat) {
-                        return DropdownMenuItem<String>(
-                          value: cat,
-                          child: Row(
-                            children: [
-                              Icon(
-                                _getCategoryIcon(cat),
-                                size: 18,
-                                color: theme.colorScheme.primary.withOpacity(0.7),
-                              ),
-                              const SizedBox(width: 12),
-                              Text(cat),
-                            ],
-                          ),
-                        );
-                      }).toList(),
-                      onChanged: (String? newValue) {
-                        if (newValue != null) {
-                          setState(() => selectedCategory = newValue);
-                        }
-                      },
-                    ),
+                    color: theme.colorScheme.outlineVariant.withOpacity(0.3),
+                    borderRadius: BorderRadius.circular(2),
                   ),
                 ),
-                if (selectedCategory == 'Lainnya') ...[
-                  const SizedBox(height: 16),
-                  _buildFieldLabel(context, 'KATEGORI KUSTOM'),
-                  TextField(
-                    controller: customCatController,
-                    style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold),
-                    decoration: _buildInputDecoration(
-                      theme,
-                      'Contoh: Hadiah, Pesta',
-                      Icons.category_rounded,
+              ),
+              const SizedBox(height: 24),
+              Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: theme.colorScheme.primary.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Icon(Icons.playlist_add_rounded, color: theme.colorScheme.primary, size: 24),
+                  ),
+                  const SizedBox(width: 12),
+                  Text(
+                    'Buat Daftar Baru',
+                    style: theme.textTheme.titleLarge?.copyWith(
+                      fontWeight: FontWeight.w900, 
+                      letterSpacing: -0.5,
                     ),
                   ),
                 ],
-              ],
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: Text(
-                'Batal',
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  color: theme.colorScheme.outline,
+              ),
+              const SizedBox(height: 24),
+              _buildFieldLabel(context, 'NAMA DAFTAR'),
+              TextField(
+                controller: nameController,
+                autofocus: true,
+                style: theme.textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.bold),
+                decoration: _buildInputDecoration(
+                  theme,
+                  'Misal: Belanja Bulanan, Kebutuhan Dapur',
+                  Icons.edit_rounded,
                 ),
               ),
-            ),
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: theme.colorScheme.primary,
-                foregroundColor: theme.colorScheme.onPrimary,
-                elevation: 0,
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-              ),
-              onPressed: () {
-                if (nameController.text.isNotEmpty) {
-                  final finalCategory = selectedCategory == 'Lainnya' &&
-                          customCatController.text.isNotEmpty
-                      ? customCatController.text
-                      : selectedCategory;
-
-                  ref.read(shoppingControllerProvider.notifier).addList(
-                        nameController.text,
-                        category: finalCategory,
+              const SizedBox(height: 20),
+              _buildFieldLabel(context, 'KATEGORI'),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.surfaceVariant.withOpacity(0.2),
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: theme.colorScheme.outlineVariant.withOpacity(0.1)),
+                ),
+                child: DropdownButtonHideUnderline(
+                  child: DropdownButton<String>(
+                    value: selectedCategory,
+                    isExpanded: true,
+                    icon: Icon(Icons.keyboard_arrow_down_rounded, color: theme.colorScheme.primary),
+                    dropdownColor: theme.colorScheme.surface,
+                    borderRadius: BorderRadius.circular(24),
+                    style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold),
+                    items: categories.map((String cat) {
+                      return DropdownMenuItem<String>(
+                        value: cat,
+                        child: Row(
+                          children: [
+                            Icon(
+                              _getCategoryIcon(cat),
+                              size: 20,
+                              color: theme.colorScheme.primary.withOpacity(0.8),
+                            ),
+                            const SizedBox(width: 14),
+                            Text(cat),
+                          ],
+                        ),
                       );
-                  ref.invalidate(myListsProvider);
-                  Navigator.pop(context);
-                }
-              },
-              child: const Text('SIMPAN', style: TextStyle(fontWeight: FontWeight.w900)),
-            ),
-          ],
+                    }).toList(),
+                    onChanged: (String? newValue) {
+                      if (newValue != null) {
+                        setState(() => selectedCategory = newValue);
+                      }
+                    },
+                  ),
+                ),
+              ),
+              if (selectedCategory == 'Lainnya') ...[
+                const SizedBox(height: 20),
+                _buildFieldLabel(context, 'KATEGORI KUSTOM'),
+                TextField(
+                  controller: customCatController,
+                  style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold),
+                  decoration: _buildInputDecoration(
+                    theme,
+                    'Contoh: Hadiah, Pesta',
+                    Icons.category_rounded,
+                  ),
+                ),
+              ],
+              const SizedBox(height: 32),
+              Row(
+                children: [
+                  Expanded(
+                    child: TextButton(
+                      style: TextButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                      ),
+                      onPressed: () => Navigator.pop(context),
+                      child: Text(
+                        'Batal',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color: theme.colorScheme.outline,
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    flex: 2,
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: theme.colorScheme.primary,
+                        foregroundColor: theme.colorScheme.onPrimary,
+                        elevation: 0,
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                      ),
+                      onPressed: () {
+                        if (nameController.text.isNotEmpty) {
+                          final finalCategory = selectedCategory == 'Lainnya' &&
+                                  customCatController.text.isNotEmpty
+                              ? customCatController.text
+                              : selectedCategory;
+
+                          ref.read(shoppingControllerProvider.notifier).addList(
+                                nameController.text,
+                                category: finalCategory,
+                              );
+                          ref.invalidate(myListsProvider);
+                          Navigator.pop(context);
+                        }
+                      },
+                      child: const Text(
+                        'Simpan Daftar',
+                        style: TextStyle(fontWeight: FontWeight.w900, fontSize: 16),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
         ),
       ),
     );

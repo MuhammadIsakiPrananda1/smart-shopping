@@ -584,6 +584,10 @@ class ListDetailPage extends ConsumerWidget {
             }
           },
         ),
+        IconButton(
+          icon: const Icon(Icons.delete_outline_rounded, color: Colors.redAccent, size: 20),
+          onPressed: () => _showDeleteConfirmation(context, ref),
+        ),
       ],
     );
   }

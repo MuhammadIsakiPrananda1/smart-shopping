@@ -82,4 +82,4 @@ Proyek ini menggunakan lisensi **MIT**. Detail lengkap dapat ditemukan di file [
 
 ---
 
-**Dibuat dengan ❤️ oleh [Neverland Studio](https://github.com/NeverlandStudio)**
+**Dibuat Oleh [Muhammad Isaki Prananda](https://github.com/MuhammadIsakiPrananda1)**

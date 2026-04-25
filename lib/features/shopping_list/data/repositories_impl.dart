@@ -143,6 +143,7 @@ class ShoppingRepositoryImpl implements ShoppingRepository {
         if (!alreadyInHistory) {
           history.add({
             'itemId': item.id,
+            'listId': listId, // Add listId for better synchronization
             'itemName': item.name,
             'category': item.category,
             'price': item.price,
@@ -181,21 +182,39 @@ class ShoppingRepositoryImpl implements ShoppingRepository {
   @override
   Future<Either<Failure, void>> deleteList(String listId) async {
     try {
-      // Delete list
-      await _listsBox.delete(listId);
+      // 1. Collect all item IDs for this list BEFORE deleting anything
+      final itemIds = _itemsBox.values
+          .where((item) => item.listId == listId)
+          .map((item) => item.id)
+          .toList();
       
-      // Delete associated items
+      // 2. Sync Activity: Remove all items of this list from history
+      final history = List.from(_historyBox.get('items', defaultValue: []) as List);
+      history.removeWhere((e) {
+        final entry = e as Map;
+        
+        // Priority 1: Match by listId (newly added field)
+        if (entry['listId'] == listId) return true;
+        
+        // Priority 2: Fallback for older entries using itemId
+        if (itemIds.isNotEmpty) {
+          final itemId = entry['itemId']?.toString();
+          return itemIds.any((id) => id.toString() == itemId);
+        }
+        
+        return false;
+      });
+      await _historyBox.put('items', history);
+      
+      // 3. Delete associated items from items box
       final itemKeys = _itemsBox.keys.where((key) {
         final item = _itemsBox.get(key);
         return item?.listId == listId;
       }).toList();
-      
       await _itemsBox.deleteAll(itemKeys);
       
-      // Sync Activity: Remove all items of this list from history
-      final history = List.from(_historyBox.get('items', defaultValue: []) as List);
-      history.removeWhere((e) => itemKeys.contains((e as Map)['itemId']));
-      await _historyBox.put('items', history);
+      // 4. Delete the list itself
+      await _listsBox.delete(listId);
       
       return const Right(null);
     } catch (e) {
@@ -206,17 +225,47 @@ class ShoppingRepositoryImpl implements ShoppingRepository {
   @override
   Future<Either<Failure, void>> deleteLists(List<String> listIds) async {
     try {
+      final allItemIds = <String>[];
+      
       for (final listId in listIds) {
-        // Delete items associated with this list
+        // 1. Collect item IDs for this list
+        final itemIds = _itemsBox.values
+            .where((item) => item.listId == listId)
+            .map((item) => item.id)
+            .toList();
+        allItemIds.addAll(itemIds);
+        
+        // 2. Delete items associated with this list
         final itemKeys = _itemsBox.keys.where((key) {
           final item = _itemsBox.get(key);
           return item?.listId == listId;
         }).toList();
         await _itemsBox.deleteAll(itemKeys);
         
-        // Delete the list itself
+        // 3. Delete the list itself
         await _listsBox.delete(listId);
       }
+
+      // 4. Sync Activity: Remove all collected items from history
+      if (allItemIds.isNotEmpty || listIds.isNotEmpty) {
+        final history = List.from(_historyBox.get('items', defaultValue: []) as List);
+        history.removeWhere((e) {
+          final entry = e as Map;
+          
+          // Priority 1: Match by listId
+          if (listIds.contains(entry['listId'])) return true;
+          
+          // Priority 2: Fallback for older entries
+          if (allItemIds.isNotEmpty) {
+            final itemId = entry['itemId']?.toString();
+            return allItemIds.any((id) => id.toString() == itemId);
+          }
+          
+          return false;
+        });
+        await _historyBox.put('items', history);
+      }
+      
       return const Right(null);
     } catch (e) {
       return Left(ServerFailure(e.toString()));
